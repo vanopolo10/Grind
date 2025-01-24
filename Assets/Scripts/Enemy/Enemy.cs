@@ -18,15 +18,15 @@ public class Enemy : MonoBehaviour
             Destroy(gameObject);
     }
     
-    public void StartMovingTo(Transform targetTransform)
+    public void StartFight(Transform targetTransform)
     {
         if (_moveCoroutine != null)
             StopCoroutine(_moveCoroutine);
         
-        _moveCoroutine = StartCoroutine(MoveTo(targetTransform));
+        _moveCoroutine = StartCoroutine(Fight(targetTransform));
     }
 
-    private IEnumerator MoveTo(Transform targetTransform)
+    private IEnumerator Fight(Transform targetTransform)
     {
         bool isActive = true;
         

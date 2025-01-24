@@ -1,33 +1,39 @@
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(SpawnManager))]
 public class RoomManager : MonoBehaviour
 {
     [SerializeField] private Vector2 _leftTopCorner;
     [SerializeField] private Vector2 _rightBottomCorner;
     [SerializeField] private Transform _spawnpoint;
-    [SerializeField] private List<Spawner> _spawners;
     [SerializeField] private Door _door;
     [SerializeField] private Counter _counter;
-    
-    private bool _isActive = false;
 
+    private SpawnManager _spawnManager;
+    private int _waveIndex = 0;
+    
     public event Action RoomStarted;
     public event Action RoomEnded;
-    
+
+    private void Awake()
+    {
+        _spawnManager = GetComponent<SpawnManager>();
+    }
+
     private void OnEnable()
     {
         _counter.TimeEnded += ActivateDoor;
         _door.HeroEntered += OnHeroEntered;
-        _isActive = true;
+        _spawnManager.WaveSpawned += ChangeWave;
     }
     
     private void OnDisable()
     {
         _counter.TimeEnded -= ActivateDoor;
         _door.HeroEntered -= OnHeroEntered;
-        _isActive = false;
+        _spawnManager.WaveSpawned -= ChangeWave;
     }
 
     public (Vector2 leftTopCorner, Vector2 rightBottomCorner) GetCorners()
@@ -47,8 +53,26 @@ public class RoomManager : MonoBehaviour
 
         player.transform.position = new Vector3(_spawnpoint.position.x, _spawnpoint.position.y + player.transform.localScale.y, _spawnpoint.position.z);
         
-        foreach (var spawner in _spawners)
-            spawner.BeginSpawn();
+        BeginWave();
+    }
+
+    private void BeginWave()
+    {
+        StartCoroutine(_spawnManager.Spawn(_waveIndex));
+    }
+
+    private void ChangeWave(SpawnManager.Wave waveSpawned)
+    {
+        _waveIndex++;
+
+        if (_waveIndex < _spawnManager.WavesCount)
+            StartCoroutine(WaitForNextWaveAndBegin(waveSpawned.NextWaveDelay));
+    }
+
+    private IEnumerator WaitForNextWaveAndBegin(float time)
+    {
+        yield return new WaitForSeconds(time);
+        BeginWave();
     }
     
     private void ActivateDoor()
@@ -58,9 +82,6 @@ public class RoomManager : MonoBehaviour
 
     private void OnHeroEntered()
     {
-        foreach (var spawner in _spawners)
-            spawner.enabled = false;
-        
         RoomEnded?.Invoke();
     }
 }

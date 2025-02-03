@@ -16,6 +16,8 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!_target) return;
+        
         Vector3 position = _target.position + _offset;
 
         position.x = Mathf.Clamp(position.x, _leftTopCorner.x, _rightBottomCorner.x);

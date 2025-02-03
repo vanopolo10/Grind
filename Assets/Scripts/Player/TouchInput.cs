@@ -4,7 +4,7 @@ public class TouchInput : MonoBehaviour
 {
     [SerializeField] private float _speed = 5;
 
-    private bool _isTouch = false;
+    private bool _isTouch;
     private Vector2 _startTouchPosition;
 
     private void Update()

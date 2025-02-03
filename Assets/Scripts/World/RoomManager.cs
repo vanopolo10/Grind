@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(SpawnManager))]
+[RequireComponent(typeof(SpawnSystem))]
 public class RoomManager : MonoBehaviour
 {
     [SerializeField] private Vector2 _leftTopCorner;
@@ -11,29 +11,30 @@ public class RoomManager : MonoBehaviour
     [SerializeField] private Door _door;
     [SerializeField] private Counter _counter;
 
-    private SpawnManager _spawnManager;
+    private SpawnSystem _spawnSystem;
     private int _waveIndex = 0;
+    private Character _character;
     
     public event Action RoomStarted;
     public event Action RoomEnded;
 
     private void Awake()
     {
-        _spawnManager = GetComponent<SpawnManager>();
+        _spawnSystem = GetComponent<SpawnSystem>();
     }
 
     private void OnEnable()
     {
         _counter.TimeEnded += ActivateDoor;
         _door.HeroEntered += OnHeroEntered;
-        _spawnManager.WaveSpawned += ChangeWave;
+        _spawnSystem.WaveSpawned += ChangeWave;
     }
     
     private void OnDisable()
     {
         _counter.TimeEnded -= ActivateDoor;
         _door.HeroEntered -= OnHeroEntered;
-        _spawnManager.WaveSpawned -= ChangeWave;
+        _spawnSystem.WaveSpawned -= ChangeWave;
     }
 
     public (Vector2 leftTopCorner, Vector2 rightBottomCorner) GetCorners()
@@ -46,33 +47,35 @@ public class RoomManager : MonoBehaviour
         return _counter;
     }
     
-    public void Play(TouchInput player)
+    public void Play(Character character)
     {
+        _character = character;
+        
         RoomStarted?.Invoke();
         _door.Deactivate();
 
-        player.transform.position = new Vector3(_spawnpoint.position.x, _spawnpoint.position.y + player.transform.localScale.y, _spawnpoint.position.z);
+        character.transform.position = new Vector3(_spawnpoint.position.x, _spawnpoint.position.y + character.transform.localScale.y, _spawnpoint.position.z);
         
-        BeginWave();
+        BeginWave(_character);
     }
 
-    private void BeginWave()
+    private void BeginWave(Character character)
     {
-        StartCoroutine(_spawnManager.Spawn(_waveIndex));
+        StartCoroutine(_spawnSystem.Spawn(_waveIndex, character));
     }
 
-    private void ChangeWave(SpawnManager.Wave waveSpawned)
+    private void ChangeWave(SpawnSystem.Wave waveSpawned)
     {
         _waveIndex++;
 
-        if (_waveIndex < _spawnManager.WavesCount)
+        if (_waveIndex < _spawnSystem.WavesCount)
             StartCoroutine(WaitForNextWaveAndBegin(waveSpawned.NextWaveDelay));
     }
 
     private IEnumerator WaitForNextWaveAndBegin(float time)
     {
         yield return new WaitForSeconds(time);
-        BeginWave();
+        BeginWave(_character);
     }
     
     private void ActivateDoor()

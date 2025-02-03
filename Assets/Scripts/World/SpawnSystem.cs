@@ -4,17 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SpawnManager : MonoBehaviour
+public class SpawnSystem : MonoBehaviour
 {
     [SerializeField] private List<Spawner> _spawners;
     [SerializeField] private List<Wave> _waves;
-    [SerializeField] private TouchInput _player;
 
     public event Action<Wave> WaveSpawned;
 
     public int WavesCount => _waves.Count;
 
-    public IEnumerator Spawn(int currentWaveIndex)
+    public IEnumerator Spawn(int currentWaveIndex, Character character)
     {
         Wave wave = _waves[currentWaveIndex];
         
@@ -24,12 +23,12 @@ public class SpawnManager : MonoBehaviour
 
         for (int i = 0; i < wave.EnemyCount; i++)
         {
-            Enemy enemy = Instantiate(wave.EnemyPrefab);
             
-            Vector3 spawnPosition = _spawners[Random.Range(0, _waves.Count)].EnemySpawnPoint + new Vector3(0, enemy.transform.localScale.y / spawnHeightCoefficient, 0);
-            enemy.transform.position = spawnPosition;
+            Vector3 spawnPosition = _spawners[Random.Range(0, _waves.Count)].EnemySpawnPoint + new Vector3(0, wave.EnemyPrefab.transform.localScale.y / spawnHeightCoefficient, 0);
             
-            enemy.StartFight(_player.transform);
+            Enemy enemy = Instantiate(wave.EnemyPrefab, spawnPosition, new Quaternion());
+            
+            enemy.StartFight(character);
 
             yield return spawnDelay;
         }

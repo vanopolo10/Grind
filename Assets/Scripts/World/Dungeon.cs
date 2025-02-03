@@ -5,7 +5,7 @@ public class Dungeon : MonoBehaviour
 {
     [SerializeField] private CounterView _counterView;
     [SerializeField] private CameraFollow _camera;
-    [SerializeField] private TouchInput _player;
+    [SerializeField] private Character _player;
     [SerializeField] private List<RoomManager> _rooms;
 
     private int _activeRoomID = 0;

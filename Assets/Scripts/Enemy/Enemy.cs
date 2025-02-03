@@ -1,39 +1,47 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
-public class Enemy : MonoBehaviour
+[RequireComponent(typeof(NavMeshAgent))]
+public abstract class Enemy : MonoBehaviour
 {
-    [SerializeField] private float _speed = 5f;
+    [SerializeField] protected float _speed = 5f;
+    [SerializeField] protected float _lifeTime = 5f;
 
+    protected NavMeshAgent _agent;
     private Coroutine _moveCoroutine;
+    
+    protected virtual void Awake()
+    {
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.speed = _speed;
+    }
     
     private void OnDisable()
     {
         StopAllCoroutines();
     }
     
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Player"))
-            Destroy(gameObject);
-    }
+    // private void OnCollisionEnter(Collision other)
+    // {
+    //     if (other.gameObject.CompareTag("Player"))
+    //         Destroy(gameObject);
+    // }
     
-    public void StartFight(Transform targetTransform)
+    public void StartFight(Character character)
     {
         if (_moveCoroutine != null)
             StopCoroutine(_moveCoroutine);
-        
-        _moveCoroutine = StartCoroutine(Fight(targetTransform));
+
+        StartCoroutine(Decay());
+        _moveCoroutine = StartCoroutine(Fight(character));
     }
 
-    private IEnumerator Fight(Transform targetTransform)
+    private IEnumerator Decay()
     {
-        bool isActive = true;
-        
-        while (isActive)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, targetTransform.position, _speed * Time.deltaTime);
-            yield return null;
-        }
+        yield return new WaitForSeconds(_lifeTime);
+        Destroy(gameObject);
     }
+
+    protected abstract IEnumerator Fight(Character character);
 }

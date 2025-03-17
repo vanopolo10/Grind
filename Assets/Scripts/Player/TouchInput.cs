@@ -1,11 +1,18 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class TouchInput : MonoBehaviour
 {
-    [SerializeField] private float _speed = 5;
+    [SerializeField] private float _speed = 15;
 
     private bool _isTouch;
     private Vector2 _startTouchPosition;
+    private Rigidbody _rigidbody;
+
+    private void Awake()
+    {
+        _rigidbody = GetComponent<Rigidbody>();
+    }
 
     private void Update()
     {
@@ -28,6 +35,7 @@ public class TouchInput : MonoBehaviour
                 case TouchPhase.Canceled:
                 case TouchPhase.Ended:
                     _isTouch = false;
+                    _rigidbody.linearVelocity = Vector3.zero;
                     break;
             }
         }
@@ -36,11 +44,11 @@ public class TouchInput : MonoBehaviour
     private void Move(Vector2 touchPosition)
     {
         if (!_isTouch) return;
-
+        
         Vector2 direction = touchPosition - _startTouchPosition;
 
         direction.Normalize();
 
-        transform.Translate(new Vector3(direction.x, 0, direction.y) * (_speed * Time.deltaTime));
+        _rigidbody.linearVelocity = new Vector3(direction.x, 0, direction.y) * _speed;
     }
 }

@@ -3,12 +3,16 @@ using UnityEngine;
 
 public class RangedEnemy : Enemy
 {
+    [SerializeField] private int _damage = 20;
     [SerializeField] private float _stoppingDistance = 10f;
     [SerializeField] private float _retreatDistance = 5f;
     [SerializeField] private Projectile _projectilePrefab;
     [SerializeField] private float _attackCooldown = 0.7f;
 
     private bool _canAttack = true;
+    
+    protected override int Reward => 10;
+    protected override int Health { get; set; } = 50;
 
     protected override IEnumerator Fight(Character character)
     {
@@ -18,7 +22,7 @@ public class RangedEnemy : Enemy
 
             if (distance > _stoppingDistance)
             {
-                _agent.SetDestination(character.transform.position);
+                Agent.SetDestination(character.transform.position);
             }
             else if (distance < _retreatDistance)
             {
@@ -26,11 +30,11 @@ public class RangedEnemy : Enemy
                 retreatDirection.Normalize();
 
                 Vector3 retreatTarget = transform.position + retreatDirection * _stoppingDistance;
-                _agent.SetDestination(retreatTarget);
+                Agent.SetDestination(retreatTarget);
             }
             else
             {
-                _agent.ResetPath();
+                Agent.ResetPath();
 
                 if (_canAttack)
                 {
@@ -42,11 +46,16 @@ public class RangedEnemy : Enemy
         }
     }
 
-    private IEnumerator Shoot(Vector3 characterPosition)
+    private IEnumerator Shoot(Vector3 targetPosition)
     {       
         _canAttack = false;
-        Projectile projectile = Instantiate(_projectilePrefab, transform.position, new Quaternion());
-        projectile.BeginFly(characterPosition - transform.position);
+    
+        Projectile projectile = Instantiate(_projectilePrefab, transform.position, Quaternion.identity);
+    
+        Vector3 direction = (targetPosition - transform.position).normalized;
+    
+        projectile.BeginFly(direction, _damage, GetFaction());
+    
         yield return new WaitForSeconds(_attackCooldown);
         _canAttack = true;
     }

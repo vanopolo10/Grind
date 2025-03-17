@@ -1,16 +1,23 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public abstract class Enemy : MonoBehaviour
+public abstract class Enemy : MonoBehaviour, IDamagable
 {
-    [SerializeField] protected float _speed = 5f;
-    [SerializeField] protected float _lifeTime = 5f;
-
-    protected NavMeshAgent _agent;
-    private Coroutine _moveCoroutine;
+    [SerializeField] private float _speed = 5f;
     
+    private Faction _faction = Faction.Enemy;
+    private NavMeshAgent _agent;
+    private Coroutine _moveCoroutine;
+
+    protected NavMeshAgent Agent => _agent;
+    protected abstract int Reward { get; }
+    protected abstract int Health { get; set; }
+
+    public event Action<Enemy, int> Died; 
+
     protected virtual void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
@@ -22,26 +29,26 @@ public abstract class Enemy : MonoBehaviour
         StopAllCoroutines();
     }
     
-    // private void OnCollisionEnter(Collision other)
-    // {
-    //     if (other.gameObject.CompareTag("Player"))
-    //         Destroy(gameObject);
-    // }
+    public Faction GetFaction() => _faction;
     
     public void StartFight(Character character)
     {
         if (_moveCoroutine != null)
             StopCoroutine(_moveCoroutine);
 
-        StartCoroutine(Decay());
         _moveCoroutine = StartCoroutine(Fight(character));
     }
 
-    private IEnumerator Decay()
+    public void TakeDamage(int damage)
     {
-        yield return new WaitForSeconds(_lifeTime);
-        Destroy(gameObject);
-    }
+        Health -= damage;
 
+        if (Health <= 0)
+        {
+            Died?.Invoke(this, Reward);
+            Destroy(gameObject);
+        }
+    }
+    
     protected abstract IEnumerator Fight(Character character);
 }

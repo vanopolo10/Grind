@@ -4,8 +4,8 @@ public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private Transform _target;
     
-    private Vector2 _leftTopCorner;
-    private Vector2 _rightBottomCorner;
+    [SerializeField] private Vector2 _leftTopCorner;
+    [SerializeField] private Vector2 _rightBottomCorner;
     
     private Vector3 _offset;
 
@@ -26,9 +26,8 @@ public class CameraFollow : MonoBehaviour
         transform.position = position;
     }
 
-    public void SetCorners(Vector2 leftTopCorner, Vector2 rightBottomCorner)
+    public void SetTopEdge(float edge)
     {
-        _leftTopCorner = leftTopCorner;
-        _rightBottomCorner = rightBottomCorner;
+        _leftTopCorner.y = edge;
     }
 }

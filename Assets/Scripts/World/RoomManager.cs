@@ -1,21 +1,23 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(SpawnSystem))]
 public class RoomManager : MonoBehaviour
 {
-    [SerializeField] private Vector2 _leftTopCorner;
-    [SerializeField] private Vector2 _rightBottomCorner;
-    [SerializeField] private Transform _spawnpoint;
-    [SerializeField] private Door _door;
-    [SerializeField] private Counter _counter;
+    [SerializeField] private float _topEdge = -31;
+    [SerializeField] private Gates _gates;
 
     private SpawnSystem _spawnSystem;
     private int _waveIndex = 0;
     private Character _character;
+
+    private bool _canLeave = false;
+    private List<Enemy> _roomEnemies = new();
+
+    public float TopEdge => _topEdge;
     
-    public event Action RoomStarted;
     public event Action RoomEnded;
 
     private void Awake()
@@ -25,38 +27,29 @@ public class RoomManager : MonoBehaviour
 
     private void OnEnable()
     {
-        _counter.TimeEnded += ActivateDoor;
-        _door.HeroEntered += OnHeroEntered;
+        _gates.HeroEntered += OnHeroLeaved;
         _spawnSystem.WaveSpawned += ChangeWave;
     }
     
     private void OnDisable()
     {
-        _counter.TimeEnded -= ActivateDoor;
-        _door.HeroEntered -= OnHeroEntered;
+        _gates.HeroEntered -= OnHeroLeaved;
         _spawnSystem.WaveSpawned -= ChangeWave;
-    }
-
-    public (Vector2 leftTopCorner, Vector2 rightBottomCorner) GetCorners()
-    {
-        return (_leftTopCorner, _rightBottomCorner);
-    }
-
-    public Counter GetCounter()
-    {
-        return _counter;
     }
     
     public void Play(Character character)
     {
         _character = character;
         
-        RoomStarted?.Invoke();
-        _door.Deactivate();
-
-        character.transform.position = new Vector3(_spawnpoint.position.x, _spawnpoint.position.y + character.transform.localScale.y, _spawnpoint.position.z);
+        _gates.Activate();
         
         BeginWave(_character);
+    }
+    
+    public void SubscribeEnemy(Enemy enemy)
+    {
+        _roomEnemies.Add(enemy);
+        enemy.Died += TryFinishRoom;
     }
 
     private void BeginWave(Character character)
@@ -70,6 +63,8 @@ public class RoomManager : MonoBehaviour
 
         if (_waveIndex < _spawnSystem.WavesCount)
             StartCoroutine(WaitForNextWaveAndBegin(waveSpawned.NextWaveDelay));
+        else
+            _canLeave = true;
     }
 
     private IEnumerator WaitForNextWaveAndBegin(float time)
@@ -77,13 +72,17 @@ public class RoomManager : MonoBehaviour
         yield return new WaitForSeconds(time);
         BeginWave(_character);
     }
-    
-    private void ActivateDoor()
+
+    private void TryFinishRoom(Enemy enemy, int money)
     {
-        _door.Activate();
+        enemy.Died -= TryFinishRoom;
+        _roomEnemies.Remove(enemy);
+        
+        if (_canLeave && _roomEnemies.Count == 0)
+            _gates.Deactivate();
     }
 
-    private void OnHeroEntered()
+    private void OnHeroLeaved()
     {
         RoomEnded?.Invoke();
     }

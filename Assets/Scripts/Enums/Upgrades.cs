@@ -1,6 +1,6 @@
 public enum Upgrades
 {
-    Attack,
+    Damage,
     Health,
     AttackSpeed
 }

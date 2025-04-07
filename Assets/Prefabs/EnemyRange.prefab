@@ -148,11 +148,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 5
-  _damage: 20
+  _health: 1
+  _reward: 2
+  _damage: 5
   _stoppingDistance: 10
   _retreatDistance: 5
   _projectilePrefab: {fileID: 1532584622102926018, guid: 88f739f332574c7448d7ea2d94a69964, type: 3}
-  _attackCooldown: 2
+  _attackCooldown: 1.7
 --- !u!54 &2526631771213259273
 Rigidbody:
   m_ObjectHideFlags: 0

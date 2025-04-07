@@ -4,22 +4,25 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IDamagable
 {
-    [SerializeField] private int _maxHealth = 500;
-    [SerializeField] private int _damage = 25;
+    [SerializeField] private int _maxHealth = 10;
+    [SerializeField] private int _damage = 1;
     [SerializeField] private float _attackRadius = 2;
     [SerializeField] private Projectile _projectilePrefab;
-    [SerializeField] private float _attackCooldown = 2.1f;
+    [SerializeField] private float _attackCooldown = 1f;
 
     private int _health;
-    private int _attackIncreaseBy = 2;
-    private int _healthIncreaseBy = 20;
-    private float _attackCooldownDecreaseBy = 0.1f;
+    private int _attackIncreaseBy = 1;
+    private int _healthIncreaseBy = 2;
+    private float _attackCooldownDecreaseBy = 0.01f;
     
     private bool _canAttack = true;
 
-    public event Action<int> HealthChanged;
-
+    public int Damage => _damage;
     public int Health => _health;
+    public int MaxHealth => _maxHealth;
+    public float AttackSpeed => _attackCooldown;
+
+    public event Action<int> HealthChanged;
 
     private void Awake()
     {
@@ -50,7 +53,7 @@ public class Character : MonoBehaviour, IDamagable
     {
         switch (upgrade)
         {
-            case Upgrades.Attack:
+            case Upgrades.Damage:
                 _damage += _attackIncreaseBy;
                 break;
             

@@ -7,14 +7,14 @@ using UnityEngine.AI;
 public abstract class Enemy : MonoBehaviour, IDamagable
 {
     [SerializeField] private float _speed = 5f;
+    [SerializeField] private int _health;
+    [SerializeField] private int _reward;
     
     private Faction _faction = Faction.Enemy;
     private NavMeshAgent _agent;
     private Coroutine _moveCoroutine;
 
     protected NavMeshAgent Agent => _agent;
-    protected abstract int Reward { get; }
-    protected abstract int Health { get; set; }
 
     public event Action<Enemy, int> Died; 
 
@@ -41,11 +41,11 @@ public abstract class Enemy : MonoBehaviour, IDamagable
 
     public void TakeDamage(int damage)
     {
-        Health -= damage;
+        _health -= damage;
 
-        if (Health <= 0)
+        if (_health <= 0)
         {
-            Died?.Invoke(this, Reward);
+            Died?.Invoke(this, _reward);
             Destroy(gameObject);
         }
     }

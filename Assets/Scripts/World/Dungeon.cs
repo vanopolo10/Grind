@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Dungeon : MonoBehaviour
 {
@@ -7,6 +8,8 @@ public class Dungeon : MonoBehaviour
     [SerializeField] private Character _player;
     [SerializeField] private List<RoomManager> _rooms;
 
+    [SerializeField] private Button _endBattleButton;
+    
     private int _activeRoomID = 0;
     private RoomManager _activeRoom;
 
@@ -14,6 +17,7 @@ public class Dungeon : MonoBehaviour
     {
         SetActiveRoom();
         LaunchRoom();
+        _endBattleButton.onClick.AddListener(EndBattle);
     }
     
     private void LaunchRoom()
@@ -26,6 +30,11 @@ public class Dungeon : MonoBehaviour
         _camera.SetTopEdge(topEdge);
     }
 
+    private void EndBattle()
+    {
+        _activeRoom.EndBattle();
+    }
+    
     private void ChangeRoom()
     {
         _activeRoom.RoomEnded -= ChangeRoom;

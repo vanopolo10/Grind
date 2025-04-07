@@ -10,14 +10,15 @@ public class RoomManager : MonoBehaviour
     [SerializeField] private Gates _gates;
 
     private SpawnSystem _spawnSystem;
-    private int _waveIndex = 0;
+    private int _waveIndex;
     private Character _character;
 
-    private bool _canLeave = false;
+    private bool _canLeave;
+    private Coroutine _spawnCoroutine;
     private List<Enemy> _roomEnemies = new();
 
     public float TopEdge => _topEdge;
-    
+
     public event Action RoomEnded;
 
     private void Awake()
@@ -30,31 +31,50 @@ public class RoomManager : MonoBehaviour
         _gates.HeroEntered += OnHeroLeaved;
         _spawnSystem.WaveSpawned += ChangeWave;
     }
-    
+
     private void OnDisable()
     {
         _gates.HeroEntered -= OnHeroLeaved;
         _spawnSystem.WaveSpawned -= ChangeWave;
     }
-    
+
     public void Play(Character character)
     {
         _character = character;
-        
         _gates.Activate();
-        
         BeginWave(_character);
     }
-    
+
     public void SubscribeEnemy(Enemy enemy)
     {
         _roomEnemies.Add(enemy);
-        enemy.Died += TryFinishRoom;
+        enemy.Died += RemoveEnemy;
+    }
+
+    public void EndBattle()
+    {
+        _canLeave = true;
+        _spawnSystem.Stop();
+
+        if (_spawnCoroutine != null)
+            StopCoroutine(_spawnCoroutine);
+
+        if (_roomEnemies.Count > 0)
+        {
+            foreach (var enemy in _roomEnemies)
+            {
+                Destroy(enemy.gameObject);
+            }
+
+            _roomEnemies = new List<Enemy>();
+        }
+        
+        TryFinishRoom();
     }
 
     private void BeginWave(Character character)
     {
-        StartCoroutine(_spawnSystem.Spawn(_waveIndex, character));
+        _spawnCoroutine = StartCoroutine(_spawnSystem.Spawn(_waveIndex, character));
     }
 
     private void ChangeWave(SpawnSystem.Wave waveSpawned)
@@ -73,11 +93,15 @@ public class RoomManager : MonoBehaviour
         BeginWave(_character);
     }
 
-    private void TryFinishRoom(Enemy enemy, int money)
+    private void RemoveEnemy(Enemy enemy, int money)
     {
-        enemy.Died -= TryFinishRoom;
+        enemy.Died -= RemoveEnemy;
         _roomEnemies.Remove(enemy);
-        
+        TryFinishRoom();
+    }
+
+    private void TryFinishRoom()
+    {
         if (_canLeave && _roomEnemies.Count == 0)
             _gates.Deactivate();
     }

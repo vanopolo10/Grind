@@ -7,12 +7,10 @@ public class RangedEnemy : Enemy
     [SerializeField] private float _stoppingDistance = 10f;
     [SerializeField] private float _retreatDistance = 5f;
     [SerializeField] private Projectile _projectilePrefab;
-    [SerializeField] private float _attackCooldown = 0.7f;
-
+    [SerializeField] private float _attackCooldown = 1.7f;
+    
     private bool _canAttack = true;
     
-    protected override int Reward => 10;
-    protected override int Health { get; set; } = 50;
 
     protected override IEnumerator Fight(Character character)
     {

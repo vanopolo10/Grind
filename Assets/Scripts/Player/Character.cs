@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(Animator))]
 public class Character : MonoBehaviour, IDamagable
 {
     [SerializeField] private int _maxHealth = 10;
@@ -23,6 +24,7 @@ public class Character : MonoBehaviour, IDamagable
     public float AttackSpeed => _attackCooldown;
 
     public event Action<int> HealthChanged;
+    public event Action Attacked;
 
     private void Awake()
     {
@@ -120,10 +122,11 @@ public class Character : MonoBehaviour, IDamagable
     }
     
     private IEnumerator Shoot(Vector3 targetPosition)
-    {       
+    {
         _canAttack = false;
         Projectile projectile = Instantiate(_projectilePrefab, transform.position, new Quaternion());
         projectile.BeginFly((targetPosition - transform.position).normalized, _damage, GetFaction());
+        Attacked?.Invoke();
         yield return new WaitForSeconds(_attackCooldown);
         _canAttack = true;
     }

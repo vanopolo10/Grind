@@ -33,6 +33,7 @@ public class RangedEnemy : Enemy
             else
             {
                 Agent.ResetPath();
+                transform.LookAt(character.transform);
 
                 if (_canAttack)
                 {

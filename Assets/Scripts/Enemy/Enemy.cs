@@ -3,27 +3,32 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavMeshAgent), typeof(Animator))]
 public abstract class Enemy : MonoBehaviour, IDamagable
 {
     [SerializeField] private float _speed = 5f;
     [SerializeField] private int _health;
     [SerializeField] private int _reward;
     
+    private static readonly int Speed = Animator.StringToHash("speed");
+    
     private Faction _faction = Faction.Enemy;
     private NavMeshAgent _agent;
     private Coroutine _moveCoroutine;
+    private Animator _animator;
 
     protected NavMeshAgent Agent => _agent;
 
     public event Action<Enemy, int> Died; 
-
-    protected virtual void Awake()
+    
+    protected void OnEnable()
     {
         _agent = GetComponent<NavMeshAgent>();
         _agent.speed = _speed;
+        _animator = GetComponent<Animator>();
+        StartCoroutine(Animate());
     }
-    
+
     private void OnDisable()
     {
         StopAllCoroutines();
@@ -47,6 +52,15 @@ public abstract class Enemy : MonoBehaviour, IDamagable
         {
             Died?.Invoke(this, _reward);
             Destroy(gameObject);
+        }
+    }
+
+    private IEnumerator Animate()
+    {
+        while (enabled)
+        {
+            _animator.SetFloat(Speed, _agent.speed);
+            yield return null;
         }
     }
     

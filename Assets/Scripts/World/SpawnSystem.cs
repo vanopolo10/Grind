@@ -9,7 +9,6 @@ public class SpawnSystem : MonoBehaviour
 {
     [SerializeField] private List<Spawner> _spawners;
     [SerializeField] private List<Wave> _waves;
-    [SerializeField] private Wallet _wallet;
 
     private RoomManager _roomManager;
     private bool _isSpawning = false;
@@ -27,7 +26,7 @@ public class SpawnSystem : MonoBehaviour
         _isSpawning = false;
     }
 
-    public IEnumerator Spawn(int currentWaveIndex, Character character)
+    public IEnumerator Spawn(int currentWaveIndex, Character character, Wallet wallet)
     {
         _isSpawning = true;
 
@@ -40,12 +39,12 @@ public class SpawnSystem : MonoBehaviour
             if (!_isSpawning) yield break;
 
             Vector3 spawnPosition = _spawners[Random.Range(0, _spawners.Count)].EnemySpawnPoint 
-                                    + new Vector3(0, wave.EnemyPrefab.transform.localScale.y / spawnHeightCoefficient, 0);
+                                    + new Vector3(0, wave.EnemyPrefab.transform.lossyScale.y / spawnHeightCoefficient, 0);
 
             Enemy enemy = Instantiate(wave.EnemyPrefab, spawnPosition, Quaternion.identity);
             _roomManager.SubscribeEnemy(enemy);
             enemy.StartFight(character);
-            _wallet.SubscribeEnemy(enemy);
+            wallet.SubscribeEnemy(enemy);
 
             yield return spawnDelay;
         }

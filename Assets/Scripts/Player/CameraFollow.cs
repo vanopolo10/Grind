@@ -3,6 +3,7 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private Transform _target;
+    [SerializeField] private float _topEdgeStep;
     
     [SerializeField] private Vector2 _leftTopCorner;
     [SerializeField] private Vector2 _rightBottomCorner;
@@ -26,8 +27,8 @@ public class CameraFollow : MonoBehaviour
         transform.position = position;
     }
 
-    public void SetTopEdge(float edge)
+    public void IncreaseTopEdge()
     {
-        _leftTopCorner.y = edge;
+        _leftTopCorner.y += _topEdgeStep;
     }
 }

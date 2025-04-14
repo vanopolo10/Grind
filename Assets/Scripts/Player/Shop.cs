@@ -70,7 +70,7 @@ public class Upgrade
         
         _statFormatters = new Dictionary<Upgrades, Func<string>>
         {
-            { Upgrades.Damage,      () => $"Upgrades.Damage: {_character.Damage}" },
+            { Upgrades.Damage,      () => $"Damage: {_character.Damage}" },
             { Upgrades.Health,      () => $"Health: {_character.MaxHealth}" },
             { Upgrades.AttackSpeed, () => $"Attack Speed: {_character.AttackSpeed}" }
         };

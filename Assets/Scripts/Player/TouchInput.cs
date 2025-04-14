@@ -59,11 +59,16 @@ public class TouchInput : MonoBehaviour
     private void Move(Vector2 touchPosition)
     {
         if (!_isCorrectTouch) return;
-        
-        Vector2 direction = touchPosition - _startTouchPosition;
 
+        Vector2 direction = touchPosition - _startTouchPosition;
         direction.Normalize();
 
-        _rigidbody.linearVelocity = new Vector3(direction.x, 0, direction.y) * _speed;
+        Vector3 moveDirection = new Vector3(direction.x, 0, direction.y);
+
+        if (moveDirection != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(moveDirection);
+
+        _rigidbody.linearVelocity = moveDirection * _speed;
     }
+
 }

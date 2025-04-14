@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ProBuilder.MeshOperations;
 
 [RequireComponent(typeof(SpawnSystem))]
 public class RoomManager : MonoBehaviour
 {
-    [SerializeField] private float _topEdge = -31;
     [SerializeField] private Gates _gates;
 
     private SpawnSystem _spawnSystem;
@@ -16,9 +16,10 @@ public class RoomManager : MonoBehaviour
     private bool _canLeave;
     private Coroutine _spawnCoroutine;
     private List<Enemy> _roomEnemies = new();
+    private Wallet _wallet;
 
-    public float TopEdge => _topEdge;
-
+    private bool _canBeginNextWave = true;
+    
     public event Action RoomEnded;
 
     private void Awake()
@@ -38,9 +39,10 @@ public class RoomManager : MonoBehaviour
         _spawnSystem.WaveSpawned -= ChangeWave;
     }
 
-    public void Play(Character character)
+    public void Play(Character character, Wallet wallet)
     {
         _character = character;
+        _wallet = wallet;
         _gates.Activate();
         BeginWave(_character);
     }
@@ -55,6 +57,7 @@ public class RoomManager : MonoBehaviour
     {
         _canLeave = true;
         _spawnSystem.Stop();
+        _canBeginNextWave = false;
 
         if (_spawnCoroutine != null)
             StopCoroutine(_spawnCoroutine);
@@ -62,9 +65,7 @@ public class RoomManager : MonoBehaviour
         if (_roomEnemies.Count > 0)
         {
             foreach (var enemy in _roomEnemies)
-            {
                 Destroy(enemy.gameObject);
-            }
 
             _roomEnemies = new List<Enemy>();
         }
@@ -74,14 +75,14 @@ public class RoomManager : MonoBehaviour
 
     private void BeginWave(Character character)
     {
-        _spawnCoroutine = StartCoroutine(_spawnSystem.Spawn(_waveIndex, character));
+        _spawnCoroutine = StartCoroutine(_spawnSystem.Spawn(_waveIndex, character, _wallet));
     }
 
     private void ChangeWave(SpawnSystem.Wave waveSpawned)
     {
         _waveIndex++;
 
-        if (_waveIndex < _spawnSystem.WavesCount)
+        if (_waveIndex < _spawnSystem.WavesCount && _canBeginNextWave)
             StartCoroutine(WaitForNextWaveAndBegin(waveSpawned.NextWaveDelay));
         else
             _canLeave = true;

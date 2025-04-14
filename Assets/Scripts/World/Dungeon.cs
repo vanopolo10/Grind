@@ -6,11 +6,12 @@ public class Dungeon : MonoBehaviour
 {
     [SerializeField] private CameraFollow _camera;
     [SerializeField] private Character _player;
+    [SerializeField] private Wallet _wallet;
     [SerializeField] private List<RoomManager> _rooms;
 
     [SerializeField] private Button _endBattleButton;
     
-    private int _activeRoomID = 0;
+    private int _activeRoomID;
     private RoomManager _activeRoom;
 
     private void Start()
@@ -24,10 +25,7 @@ public class Dungeon : MonoBehaviour
     {
         _activeRoom.enabled = true;
         _activeRoom.RoomEnded += ChangeRoom;
-        _activeRoom.Play(_player);
-        
-        float topEdge = _activeRoom.TopEdge;
-        _camera.SetTopEdge(topEdge);
+        _activeRoom.Play(_player, _wallet);
     }
 
     private void EndBattle()
@@ -43,7 +41,9 @@ public class Dungeon : MonoBehaviour
         if (_activeRoomID < _rooms.Count - 1)
             _activeRoomID++;
         else
-            Application.Quit();
+            return;
+        
+        _camera.IncreaseTopEdge();
         
         SetActiveRoom();
         LaunchRoom();
